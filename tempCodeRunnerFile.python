@@ -1,0 +1,60 @@
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import os
+from datetime import datetime
+
+# --- CONFIGURATION ---
+DATA_FILE = "expenses.csv"
+
+def load_data():
+    if os.path.exists(DATA_FILE):
+        return pd.read_csv(DATA_FILE)
+    return pd.DataFrame(columns=["Date", "Category", "Description", "Amount"])
+
+def save_data(df):
+    df.to_csv(DATA_FILE, index=False)
+
+# --- UI SETUP ---
+st.set_page_config(page_title="Finance Analytics", layout="wide")
+st.title("💰 Personal Finance Dashboard")
+
+# Load existing data
+df = load_data()
+
+# --- SIDEBAR: DATA ENTRY ---
+st.sidebar.header("Add New Transaction")
+with st.sidebar.form("entry_form", clear_on_submit=True):
+    date = st.date_input("Date", datetime.now())
+    category = st.selectbox("Category", ["Food", "Rent", "Utilities", "Entertainment", "Transport", "Shopping", "Other"])
+    desc = st.text_input("Description")
+    amount = st.number_input("Amount", min_value=0.0, step=1.0)
+    submitted = st.form_submit_button("Add Record")
+
+    if submitted:
+        new_data = pd.DataFrame([[date, category, desc, amount]], columns=df.columns)
+        df = pd.concat([df, new_data], ignore_index=True)
+        save_data(df)
+        st.sidebar.success("Recorded!")
+
+# --- ANALYTICS SECTION ---
+if not df.empty:
+    col1, col2 = st.columns([1, 1])
+
+    with col1:
+        st.subheader("Spending by Category")
+        fig_pie = px.pie(df, values='Amount', names='Category', hole=0.4,
+                         color_discrete_sequence=px.colors.sequential.RdBu)
+        st.plotly_chart(fig_pie, use_container_width=True)
+
+    with col2:
+        st.subheader("Daily Spending Trend")
+        df['Date'] = pd.to_datetime(df['Date'])
+        daily_trend = df.groupby('Date')['Amount'].sum().reset_index()
+        fig_line = px.line(daily_trend, x='Date', y='Amount', markers=True)
+        st.plotly_chart(fig_line, use_container_width=True)
+
+    st.subheader("Recent Transactions")
+    st.dataframe(df.sort_values(by="Date", ascending=False), use_container_width=True)
+else:
+    st.info("No data found. Start adding expenses in the sidebar!")
