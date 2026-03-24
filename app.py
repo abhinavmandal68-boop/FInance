@@ -16,7 +16,7 @@ st.markdown("""
     """, unsafe_allow_html=True)
 
 # --- DATABASE CONNECTION ---
-MONGO_URI = "mongodb+srv://abhinavmandal68_db_user:Ka_Volvo1631@cluster0.t1udtc9.mongodb.net/?appName=Cluster0"
+MONGO_URI = st.secrets["MONGO_URI"]
 client = MongoClient(MONGO_URI, tls=True, tlsAllowInvalidCertificates=True)
 db = client["finance_analytics"]
 collection = db["expenses"]
