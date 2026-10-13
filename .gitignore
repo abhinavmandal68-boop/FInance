@@ -1,0 +1,13 @@
+# Recreate Python environments from requirements.txt
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Credentials belong in private deployment configuration
+.env
+.env.*
+!.env.example
+secrets.toml
+*.pem
+*.key
